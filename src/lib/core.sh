@@ -101,7 +101,10 @@ AllowedIPs = 10.0.0.2/32
 EOF
 
     echo "Configuration generated successfully."
-    # sudo wg-quick up wg0
+    if ! sudo wg-quick up wg0; then
+        echo "Failed to start WireGuard"
+        exit 1
+    fi
 
     # Display the client configuration
     local server_ip=$(curl -s https://api.ipify.org || curl -s https://ifconfig.me)
