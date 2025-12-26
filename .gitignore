@@ -1,0 +1,7 @@
+# IDE setting files
+.vscode/
+.idea/
+
+
+# Build files
+releases/
