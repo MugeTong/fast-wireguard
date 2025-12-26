@@ -102,8 +102,8 @@ EOF
 
     echo "Configuration generated successfully."
     if ! sudo wg-quick up wg0; then
-        echo "Failed to start WireGuard"
-        exit 1
+        echo "Error: Failed to bring up WireGuard interface 'wg0'." >&2
+        return 1
     fi
 
     # Display the client configuration
