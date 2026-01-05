@@ -24,16 +24,20 @@ func StartService(interfaceName string) error {
 	if err := utils.RunAsRoot("systemctl", "start", serviceName); err != nil {
 		return err
 	}
+	fmt.Printf("✅ Service %s started.\n", interfaceName)
 	return nil
 }
 
 /*
 StopService stops the WireGuard service for the given interface.
 */
-func StopService(interfaceName string) error {
+func StopService(interfaceName string, silent bool) error {
 	serviceName := fmt.Sprintf("wg-quick@%s", interfaceName)
 	if err := utils.RunAsRoot("systemctl", "stop", serviceName); err != nil {
 		return err
+	}
+	if !silent {
+		fmt.Printf("✅ Service %s stopped.\n", interfaceName)
 	}
 	return nil
 }
@@ -46,6 +50,7 @@ func RestartService(interfaceName string) error {
 	if err := utils.RunAsRoot("systemctl", "restart", serviceName); err != nil {
 		return err
 	}
+	fmt.Printf("✅ Service %s restarted.\n", interfaceName)
 	return nil
 }
 
@@ -57,16 +62,20 @@ func EnableServiceAutoStart(interfaceName string) error {
 	if err := utils.RunAsRootSilent("systemctl", "enable", serviceName); err != nil {
 		return err
 	}
+	fmt.Printf("✅ Service %s enabled to start automatically on boot.\n", interfaceName)
 	return nil
 }
 
 /*
 EnableServiceAutoStart disables the service for the given interface to start automatically on boot.
 */
-func DisableServiceAutoStart(interfaceName string) error {
+func DisableServiceAutoStart(interfaceName string, silent bool) error {
 	serviceName := fmt.Sprintf("wg-quick@%s", interfaceName)
-	if err := utils.RunAsRoot("systemctl", "disable", serviceName); err != nil {
+	if err := utils.RunAsRootSilent("systemctl", "disable", serviceName); err != nil {
 		return err
+	}
+	if !silent {
+		fmt.Printf("✅ Service %s disabled from starting automatically on boot.\n", interfaceName)
 	}
 	return nil
 }

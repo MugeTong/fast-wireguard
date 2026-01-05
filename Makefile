@@ -17,7 +17,7 @@ pack:
 	cp ./setup.sh $(BUILD_DIR)/ && \
 	makeself $(BUILD_DIR) $(RELEASE_DIR)/$(PACKAGE_NAME)-Linux-amd64.sh $(DISPLAY_NAME) ./setup.sh
 
-# This command is used for text
+# This command is used for test like: fwg ...
 run:
 	@go run ./cmd/fwg/main.go $(ARGS)
 

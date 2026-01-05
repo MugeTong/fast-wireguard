@@ -5,7 +5,7 @@ Quickly set up a WireGuard VPN server on your Linux machine with minimal configu
 This repository is used just for learning purposes.
 
 > [!WARNING]
-> Current version can not uninstall Fast-WireGuard properly.
+> There is one bug about handling the allowedIPs for more peers in the current version.
 > Please wait for the next version.
 
 ## Quick Start

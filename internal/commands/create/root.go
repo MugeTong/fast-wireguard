@@ -56,12 +56,9 @@ You can specify a custom name like 'wg1' or 'myvpn' to create multiple instances
 				fmt.Printf("Error in enabling the service %s: %v\n", interfaceName, err)
 				return
 			}
-			fmt.Printf("✅ Service %s enabled to start automatically on boot.\n", interfaceName)
-
 			if err := wireguard.StartService(interfaceName); err != nil {
 				fmt.Printf("Error in starting the service %s: %v\n", interfaceName, err)
 			}
-			fmt.Printf("✅ Service %s started.\n", interfaceName)
 		},
 	}
 
@@ -70,7 +67,7 @@ You can specify a custom name like 'wg1' or 'myvpn' to create multiple instances
 	createCmd.Flags().StringVarP(&opts.IPAdressLocal, "address", "a", "10.0.0.1/24, fd00::1/64", "local IP address assigned to WireGuard server")
 	createCmd.Flags().IntVarP(&opts.MTU, "mtu", "m", 1420, "the length of MTU")
 	createCmd.Flags().StringVarP(&opts.PeerName, "peer-name", "n", "default-peer[n]", "name of the WireGuard client peer")
-	createCmd.Flags().StringVarP(&opts.IPAdressLocalClient, "address-client", "c", "10.0.0.[n+1]/32, fd00::[n+1]/64", "IP address assigned to WireGuard client")
+	createCmd.Flags().StringVarP(&opts.IPAdressLocalClient, "address-client", "c", "10.0.0.[n+1]/32, fd00::[n+1]/128", "local IP address assigned to WireGuard client")
 	createCmd.Flags().BoolVarP(&opts.Force, "force", "f", false, "force re-setup even if already configured")
 
 	return createCmd

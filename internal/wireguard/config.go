@@ -102,6 +102,66 @@ func GenerateWGConfig(
 }
 
 /*
+DeleteWGConfig removes the WireGuard configuration file for the given interface.
+*/
+func DeleteWGConfig(interfaceName string) error {
+	configPath := filepath.Join(wgConfigDir, fmt.Sprintf("%s.conf", interfaceName))
+	pubKeyPath := filepath.Join(wgConfigDir, fmt.Sprintf("%s.pub", interfaceName))
+	PriKeyPath := filepath.Join(wgConfigDir, fmt.Sprintf("%s.key", interfaceName))
+
+	// Stop the service and disable it
+	if err := DisableServiceAutoStart(interfaceName, true); err != nil {
+		return fmt.Errorf("failed to disable service: %w", err)
+	}
+	if err := StopService(interfaceName, true); err != nil {
+		return fmt.Errorf("failed to stop service: %w", err)
+	}
+
+	// Remove the configuration file and key files
+	if err := os.Remove(configPath); err != nil {
+		return fmt.Errorf("failed to remove configuration file %s: %w", configPath, err)
+	}
+	if err := os.Remove(pubKeyPath); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("failed to remove public key file %s: %w", pubKeyPath, err)
+	}
+	if err := os.Remove(PriKeyPath); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("failed to remove private key file %s: %w", PriKeyPath, err)
+	}
+
+	// Remove this from tracker
+	if err := tracker.RemoveInterfaceFromLog(interfaceName); err != nil {
+		return fmt.Errorf("failed to untrack the interface: %w\n", err)
+	}
+
+	fmt.Printf("✅ Configuration file %s removed successfully.\n", configPath)
+	return nil
+}
+
+/*
+DeleteAllWGConfigs removes all WireGuard configuration files managed by fast-wireguard.
+*/
+func DeleteAllWGConfigs() error {
+	// Delete all managed interfaces
+	interfaces, err := tracker.GetAllManagedInterfaces()
+	if err != nil {
+		return err
+	}
+
+	for _, iface := range interfaces {
+		if err := DeleteWGConfig(iface); err != nil {
+			return err
+		}
+	}
+
+	// Clear the tracker log file
+	if err := os.Remove(tracker.InterfaceLogPath); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("failed to clear the tracker log file: %w", err)
+	}
+
+	return nil
+}
+
+/*
 AddWGPeerConfig adds a peer configuration to the given WireGuard interface configuration file.
 */
 func AddWGPeerConfig(

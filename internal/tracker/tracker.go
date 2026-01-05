@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	interfaceLogPath = "/etc/wireguard/.fwg_managed_interfaces"
+	InterfaceLogPath = "/etc/wireguard/.fwg_managed_interfaces"
 )
 
 /*
@@ -30,7 +30,7 @@ func AddInterfaceToLog(interfaceName string) error {
 	// os.O_CREATE: create if not exists
 	// os.O_WRONLY: write-only mode
 	// 0644: permissions, root can read/write, others can read
-	file, err := os.OpenFile(interfaceLogPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	file, err := os.OpenFile(InterfaceLogPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return fmt.Errorf("Cannot open tracker file: %w", err)
 	}
@@ -51,7 +51,7 @@ Returns true if managed, false otherwise, along with any error encountered.
 */
 func IsManagedByUs(interfaceName string) (bool, error) {
 	// Read the file
-	file, err := os.Open(interfaceLogPath)
+	file, err := os.Open(InterfaceLogPath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			// File does not exist, so it is definitely not created by us
@@ -82,7 +82,7 @@ RemoveInterfaceFromLog removes the interface (used for uninstallation or service
 */
 func RemoveInterfaceFromLog(interfaceName string) error {
 	// Read the file
-	content, err := os.ReadFile(interfaceLogPath)
+	content, err := os.ReadFile(InterfaceLogPath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil
@@ -117,9 +117,39 @@ func RemoveInterfaceFromLog(interfaceName string) error {
 	if len(output) > 0 {
 		output += "\n"
 	}
-	if err := os.WriteFile(interfaceLogPath, []byte(output), 0644); err != nil {
+	if err := os.WriteFile(InterfaceLogPath, []byte(output), 0644); err != nil {
 		return fmt.Errorf("Failed to the tracker file: %w", err)
 	}
 
 	return nil
+}
+
+/*
+GetAllManagedInterfaces retrieves all interfaces managed by us.
+
+Returns a slice of interface names and any error encountered.
+*/
+func GetAllManagedInterfaces() ([]string, error) {
+	// Read the file
+	content, err := os.ReadFile(InterfaceLogPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return []string{}, nil
+		}
+		return nil, err
+	}
+
+	lines := strings.Split(string(content), "\n")
+	var interfaces []string
+
+	// Collect the interfaces
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" {
+			continue // Skip the empty line
+		}
+		interfaces = append(interfaces, trimmed)
+	}
+
+	return interfaces, nil
 }
