@@ -1,4 +1,4 @@
-VERSION := 0.3.0
+VERSION := 1.0.0
 BINARY_NAME := "fwg"
 PACKAGE_NAME := "fast-wireguard"
 DISPLAY_NAME := "Fast-WireGuard"
