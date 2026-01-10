@@ -66,8 +66,8 @@ You can specify a custom name like 'wg1' or 'myvpn' to create multiple instances
 	createCmd.Flags().IntVarP(&opts.ListenPort, "port", "p", 51820, "listening port for WireGuard server")
 	createCmd.Flags().StringVarP(&opts.IPAdressLocalServer, "address", "a", "10.0.0.1/24, fd00::1/64", "local IP address assigned to WireGuard server")
 	createCmd.Flags().IntVarP(&opts.MTU, "mtu", "m", 1420, "the length of MTU")
-	createCmd.Flags().StringVarP(&opts.PeerName, "peer-name", "n", "default-peer[n]", "name of the WireGuard client peer")
-	createCmd.Flags().StringVarP(&opts.IPAdressLocalClient, "address-client", "c", "10.0.0.[n+1]/32, fd00::[n+1]/128", "local IP address assigned to WireGuard client")
+	createCmd.Flags().StringVarP(&opts.PeerName, "peer-name", "n", "default-peer", "name of the WireGuard client peer")
+	createCmd.Flags().StringVarP(&opts.IPAdressLocalClient, "address-client", "c", "10.0.0.[auto-ipv4]/32, fd00::[auto-ipv6]/128", "local IP address assigned to WireGuard client")
 	createCmd.Flags().BoolVarP(&opts.Force, "force", "f", false, "force re-setup even if already configured")
 
 	return createCmd

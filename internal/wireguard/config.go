@@ -10,6 +10,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"text/template"
 )
@@ -179,7 +180,7 @@ func AddWGPeerConfig(
 	configPath := filepath.Join(wgConfigDir, fmt.Sprintf("%s.conf", interfaceName))
 
 	// 2. Check whether the client configuration already exists
-	peers, err := parseWGPeerConfig()
+	peers, err := parseWGPeerConfig(interfaceName)
 	if err != nil {
 		return "", err
 	}
@@ -204,23 +205,61 @@ func AddWGPeerConfig(
 		return "", fmt.Errorf("configuration file for interface %s does not exist", interfaceName)
 	}
 
-	content, err := os.ReadFile(configPath)
-	if err != nil {
-		return "", fmt.Errorf("failed to read configuration file: %w", err)
-	}
-
 	// 4. Handle the given peerName and AllowdIPs
-	if strings.Contains(peerName, "[n]") {
-		// Count existing peers
-		existingPeers := bytes.Count(content, []byte("[Peer]"))
-		peerName = strings.ReplaceAll(peerName, "[n]", fmt.Sprintf("%d", existingPeers+1))
-	}
+	if strings.Contains(AllowedIPs, "[auto-ipv4]") {
+		// Scan for used IPv4 octets
+		usedOctets := make(map[int]bool)
+		for _, peer := range peers {
+			parts := strings.SplitSeq(peer.AllowedIPs, ",")
+			for part := range parts {
+				part = strings.TrimSpace(part)
+				if idx := strings.LastIndex(part, "/"); idx != -1 {
+					part = part[:idx]
+				}
+				ip := net.ParseIP(part)
+				if ip != nil {
+					if ipv4 := ip.To4(); ipv4 != nil {
+						usedOctets[int(ipv4[3])] = true
+					}
+				}
+			}
+		}
 
-	if strings.Contains(AllowedIPs, "[n+1]") {
-		// Count existing peers
-		existingPeers := bytes.Count(content, []byte("[Peer]"))
-		lastOctet := existingPeers + 2 // n starts from 1
-		AllowedIPs = strings.ReplaceAll(AllowedIPs, "[n+1]", fmt.Sprintf("%d", lastOctet))
+		// Allocate an unused IPv4 octet
+		for i := 2; i < 255; i++ {
+			if !usedOctets[i] {
+				AllowedIPs = strings.ReplaceAll(AllowedIPs, "[auto-ipv4]", strconv.Itoa(i))
+				break
+			}
+		}
+	}
+	if strings.Contains(AllowedIPs, "[auto-ipv6]") {
+		// Scan for used IPv6 last 2 bytes
+		usedValues := make(map[int]bool)
+		for _, peer := range peers {
+			parts := strings.SplitSeq(peer.AllowedIPs, ",")
+			for part := range parts {
+				part = strings.TrimSpace(part)
+				if idx := strings.LastIndex(part, "/"); idx != -1 {
+					part = part[:idx]
+				}
+				ip := net.ParseIP(part)
+				if ip != nil {
+					if ip16 := ip.To16(); ip16 != nil && ip.To4() == nil {
+						val := int(ip16[14])<<8 + int(ip16[15])
+						usedValues[val] = true
+					}
+				}
+			}
+		}
+
+		// Allocate an unused IPv6 value
+		for i := 2; i < 65535; i++ {
+			if !usedValues[i] {
+				AllowedIPs = strings.ReplaceAll(AllowedIPs, "[auto-ipv6]", strconv.Itoa(i))
+				break
+			}
+		}
 	}
 
 	// 5. Prepare the data for template rendering
@@ -310,8 +349,8 @@ func DeleteWGPeerConfig(
 /*
 parseWGPeerConfig reads the WireGuard configuration file and extracts peer configurations.
 */
-func parseWGPeerConfig() ([]PeerConfTplData, error) {
-	configPath := filepath.Join(wgConfigDir, fmt.Sprintf("%s.conf", "wg0"))
+func parseWGPeerConfig(interfaceName string) ([]PeerConfTplData, error) {
+	configPath := filepath.Join(wgConfigDir, fmt.Sprintf("%s.conf", interfaceName))
 
 	content, err := os.ReadFile(configPath)
 	if err != nil {
