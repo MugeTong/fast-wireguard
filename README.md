@@ -4,15 +4,11 @@ Quickly set up a WireGuard VPN server on your Linux machine with minimal configu
 
 This repository is used just for learning purposes.
 
-> [!WARNING]
-> There is one bug about handling the allowedIPs for more peers in the current version.
-> Please wait for the next version.
-
 ## Quick Start
 Run the following commands to install Fast-WireGuard:
 
 ```bash
-wget https://github.com/MugeTong/fast-wireguard/releases/latest/download/fast-wireguard-Linux-amd64.sh
+wget github.com/MugeTong/fast-wireguard/releases/latest/download/fast-wireguard-Linux-amd64.sh
 chmod +x fast-wireguard-Linux-amd64.sh
 sudo ./fast-wireguard-Linux-amd64.sh
 rm -f fast-wireguard-Linux-amd64.sh
