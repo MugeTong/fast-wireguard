@@ -17,7 +17,7 @@ func CreateCreateCmd() *cobra.Command {
 	var createCmd = &cobra.Command{
 		Use:     "create [interface]",
 		Aliases: []string{"install", "setup"},
-		Short:   "Create initial configuration and run the service.",
+		Short:   "Create initial configuration and run the service",
 		Long: `Set up a new WireGuard interface.
 If no interface name is provided, it defaults to 'wg0'.
 You can specify a custom name like 'wg1' or 'myvpn' to create multiple instances.`,
@@ -64,7 +64,7 @@ You can specify a custom name like 'wg1' or 'myvpn' to create multiple instances
 
 	createCmd.Flags().BoolVar(&opts.DryRun, "dry-run", false, "initial the configuration for WireGuard without creating interface")
 	createCmd.Flags().IntVarP(&opts.ListenPort, "port", "p", 51820, "listening port for WireGuard server")
-	createCmd.Flags().StringVarP(&opts.IPAdressLocal, "address", "a", "10.0.0.1/24, fd00::1/64", "local IP address assigned to WireGuard server")
+	createCmd.Flags().StringVarP(&opts.IPAdressLocalServer, "address", "a", "10.0.0.1/24, fd00::1/64", "local IP address assigned to WireGuard server")
 	createCmd.Flags().IntVarP(&opts.MTU, "mtu", "m", 1420, "the length of MTU")
 	createCmd.Flags().StringVarP(&opts.PeerName, "peer-name", "n", "default-peer[n]", "name of the WireGuard client peer")
 	createCmd.Flags().StringVarP(&opts.IPAdressLocalClient, "address-client", "c", "10.0.0.[n+1]/32, fd00::[n+1]/128", "local IP address assigned to WireGuard client")

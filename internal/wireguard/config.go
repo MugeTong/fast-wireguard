@@ -20,7 +20,7 @@ var (
 
 type WgConfTplData struct {
 	InterfaceName     string
-	PriKey            string
+	PriKeyServer      string
 	ListenPort        int
 	Address           string
 	MTU               int
@@ -34,11 +34,11 @@ type PeerConfTplData struct {
 }
 
 type ClientConfTplData struct {
-	PriKeyClient         string
-	AllowedIPs string
-	PubKey               string
-	Endpoint             string
-	MTU                  int
+	PriKeyClient string
+	AllowedIPs   string
+	PubKeyServer string
+	Endpoint     string
+	MTU          int
 }
 
 /*
@@ -47,7 +47,7 @@ GenerateWGConfig create the service file for the given parameters
 func GenerateWGConfig(
 	interfaceName string,
 	listenPort int,
-	priKey string,
+	priKeyServer string,
 	mtu int,
 	IPAdressLocal string,
 	physicalInterface string,
@@ -69,7 +69,7 @@ func GenerateWGConfig(
 	// 3. Prepare the data for template rendering
 	data := WgConfTplData{
 		InterfaceName:     interfaceName,
-		PriKey:            priKey,
+		PriKeyServer:      priKeyServer,
 		ListenPort:        listenPort,
 		Address:           IPAdressLocal,
 		MTU:               mtu,
@@ -118,7 +118,7 @@ func DeleteWGConfig(interfaceName string) error {
 	}
 
 	// Remove the configuration file and key files
-	if err := os.Remove(configPath); err != nil {
+	if err := os.Remove(configPath); err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("failed to remove configuration file %s: %w", configPath, err)
 	}
 	if err := os.Remove(pubKeyPath); err != nil && !os.IsNotExist(err) {
@@ -133,7 +133,7 @@ func DeleteWGConfig(interfaceName string) error {
 		return fmt.Errorf("failed to untrack the interface: %w\n", err)
 	}
 
-	fmt.Printf("✅ Configuration file %s removed successfully.\n", configPath)
+	fmt.Printf("✅ Configuration file for %s removed successfully.\n", interfaceName)
 	return nil
 }
 
@@ -166,14 +166,14 @@ AddWGPeerConfig adds a peer configuration to the given WireGuard interface confi
 */
 func AddWGPeerConfig(
 	interfaceName string,
+	serverPublicIP string,
+	listenPort int,
+	mtu int,
+	pubKeyServer string,
 	peerName string,
 	AllowedIPs string,
 	pubKeyClient string,
 	priKeyClient string,
-	IPAdress string,
-	pubKey string,
-	mtu int,
-	listenPort int,
 ) (string, error) {
 	// 1. Make sure the path of the configuration file
 	configPath := filepath.Join(wgConfigDir, fmt.Sprintf("%s.conf", interfaceName))
@@ -252,11 +252,11 @@ func AddWGPeerConfig(
 	fmt.Printf("✅ Peer configuration added to %s\n", configPath)
 
 	// 8. Generate Client Configuration
-	return generateWGClientConfig(
-		IPAdress,
+	return GenerateWGClientConfig(
+		serverPublicIP,
 		listenPort,
 		priKeyClient,
-		pubKey,
+		pubKeyServer,
 		AllowedIPs,
 		mtu,
 	)
@@ -346,17 +346,17 @@ func parseWGPeerConfig() ([]PeerConfTplData, error) {
 }
 
 /*
-generateWGClientConfig generates the WireGuard client configuration string.
+GenerateWGClientConfig generates the WireGuard client configuration string.
 */
-func generateWGClientConfig(
-	IPAddress string,
+func GenerateWGClientConfig(
+	serverPublicIP string,
 	listenPort int,
 	priKeyClient string,
-	pubKey string,
-	AllowedIPs string,
+	pubKeyServer string,
+	allowedIPs string,
 	mtu int,
 ) (string, error) {
-	host := IPAddress
+	host := serverPublicIP
 	if ip := net.ParseIP(host); ip != nil && ip.To4() == nil {
 		host = fmt.Sprintf("[%s]", host)
 	}
@@ -364,8 +364,8 @@ func generateWGClientConfig(
 
 	clientData := ClientConfTplData{
 		PriKeyClient: priKeyClient,
-		AllowedIPs:   AllowedIPs,
-		PubKey:       pubKey,
+		AllowedIPs:   allowedIPs,
+		PubKeyServer: pubKeyServer,
 		Endpoint:     endpoint,
 		MTU:          mtu,
 	}

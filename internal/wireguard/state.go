@@ -9,7 +9,7 @@ import (
 type ServerOptions struct {
 	DryRun              bool
 	ListenPort          int
-	IPAdressLocal       string
+	IPAdressLocalServer string
 	IPAdressLocalClient string
 	PeerName            string
 	MTU                 int
@@ -90,7 +90,7 @@ SetupServer setup the WireGuard server with the following steps:
 */
 func CreateServer(interfaceName string, opts *ServerOptions) error {
 	// 1. Generate WireGuard key pair
-	priKey, pubKey, err := GenerateWGKeys(interfaceName)
+	priKeyServer, pubKeyServer, err := GenerateWGKeys(interfaceName)
 	if err != nil {
 		return err
 	}
@@ -99,7 +99,7 @@ func CreateServer(interfaceName string, opts *ServerOptions) error {
 	if err != nil {
 		return err
 	}
-	IPAdress, err := system.GetPublicIP()
+	serverPublicIP, err := system.GetPublicIP()
 	if err != nil {
 		return err
 	}
@@ -108,9 +108,9 @@ func CreateServer(interfaceName string, opts *ServerOptions) error {
 	if err := GenerateWGConfig(
 		interfaceName,
 		opts.ListenPort,
-		priKey,
+		priKeyServer,
 		opts.MTU,
-		opts.IPAdressLocal,
+		opts.IPAdressLocalServer,
 		PhysicalInterface,
 		opts.Force); err != nil {
 		return err
@@ -129,14 +129,14 @@ func CreateServer(interfaceName string, opts *ServerOptions) error {
 	}
 	clientConfString, err := AddWGPeerConfig(
 		interfaceName,
+		serverPublicIP,
+		opts.ListenPort,
+		opts.MTU,
+		pubKeyServer,
 		opts.PeerName,
 		opts.IPAdressLocalClient,
 		pubKeyClient,
-		priKeyClient,
-		IPAdress,
-		pubKey,
-		opts.MTU,
-		opts.ListenPort)
+		priKeyClient)
 	if err != nil {
 		return err
 	}

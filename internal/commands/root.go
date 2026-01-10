@@ -2,9 +2,8 @@ package commands
 
 import (
 	"fast-wireguard/internal/commands/create"
+	"fast-wireguard/internal/commands/delete"
 	"fast-wireguard/internal/commands/uninstall"
-	"fast-wireguard/internal/commands/update"
-	"fast-wireguard/internal/commands/web"
 	"github.com/spf13/cobra"
 )
 
@@ -22,9 +21,9 @@ func CreateRootCmd(version string) *cobra.Command {
 
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
 	rootCmd.AddCommand(create.CreateCreateCmd())
+	rootCmd.AddCommand(delete.CreateDeleteCmd())
 	rootCmd.AddCommand(uninstall.CreateUninstallCmd())
-	rootCmd.AddCommand(update.CreateUpdateCmd())
-	rootCmd.AddCommand(web.CreateWebCmd())
+
 
 	rootCmd.Flags().BoolP("version", "v", false, "the version of fast-wireguard")
 

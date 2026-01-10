@@ -2,7 +2,7 @@
 [Interface]
 Address = {{ .Address }}
 ListenPort = {{ .ListenPort }}
-PrivateKey = {{ .PriKey }}
+PrivateKey = {{ .PriKeyServer }}
 MTU = {{ .MTU }}
 
 # --- Core Network Forwarding Rules (iptables) ---
